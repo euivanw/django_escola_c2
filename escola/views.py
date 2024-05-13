@@ -1,4 +1,5 @@
-from rest_framework import viewsets, generics
+from rest_framework import viewsets, generics, status
+from rest_framework.response import Response
 
 from escola.models import Aluno, Curso, Matricula
 from escola.serializer import AlunoSerializer, CursoSerializer, MatriculaSerializer, ListaMatriculasAlunoSerializer, \
@@ -19,6 +20,15 @@ class CursosViewSet(viewsets.ModelViewSet):
     """Exibindo todos os cursos"""
     queryset = Curso.objects.all()
     serializer_class = CursoSerializer
+
+    def create(self, request, **kwargs):
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            response = Response(serializer.data, status=status.HTTP_201_CREATED)
+            curso_id = str(response.data['id'])
+            response['location'] = request.build_absolute_uri() + curso_id
+            return response
 
 
 class MatriculaViewSet(viewsets.ModelViewSet):
